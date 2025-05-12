@@ -1,10 +1,13 @@
+import os
+import time
+import io
 from playwright.sync_api import sync_playwright
 from PIL import Image
 import imageio
-import io
-import time
 
-def capture_fullpage_webp(url: str, output_webp_path: str, duration: int = 5, capture_fps: int = 15, playback_fps: int = 5, quality: int = 85, method: int = 6):
+def capture_fullpage_gif(url: str, output_gif_path: str, duration: int = 3, capture_fps: int = 10):
+    frames = []
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
@@ -12,47 +15,41 @@ def capture_fullpage_webp(url: str, output_webp_path: str, duration: int = 5, ca
         print(f"Loading {url} ...")
         page.goto(url, timeout=60000)
 
-        # Lazy load 스크롤
-        scroll_height = page.evaluate("() => document.body.scrollHeight")
-        viewport_height = page.viewport_size["height"]
-        for i in range(0, scroll_height, viewport_height//2):
-            page.evaluate(f"window.scrollTo(0, {i})")
-            time.sleep(0.2)
-        page.evaluate("window.scrollTo(0, 0)")
-
-        # 전체 페이지 크기 설정
+        # 전체 페이지 크기
         dimensions = page.evaluate("""() => {
             return {
                 width: document.documentElement.scrollWidth,
                 height: document.documentElement.scrollHeight
             };
         }""")
-        page.set_viewport_size({"width": dimensions["width"], "height": dimensions["height"]})
+
+        width = dimensions["width"] - (dimensions["width"] % 2)
+        height = dimensions["height"] - (dimensions["height"] % 2)
+
+        page.set_viewport_size({"width": width, "height": height})
+
+        print(f"Viewport set to: {width}x{height}")
 
         total_frames = duration * capture_fps
         frame_interval = 1 / capture_fps
 
-        frames = []
-
-        print(f"Capturing {total_frames} frames for WebP...")
-
+        # 프레임 반복 캡처
         for _ in range(total_frames):
             screenshot_bytes = page.screenshot(type="png")
             image = Image.open(io.BytesIO(screenshot_bytes)).convert("RGB")
             frames.append(image)
             time.sleep(frame_interval)
 
-        # 저장할 때 playback_fps 로 재생 속도 조정
-        print(f"Saving Animated WebP to {output_webp_path} ...")
-        imageio.mimsave(
-            output_webp_path,
-            frames,
-            format="WEBP",
-            fps=playback_fps,
-            loop=0,
-            quality=quality,
-            method=method
-        )
-
-        print(f"WebP saved to {output_webp_path}")
         browser.close()
+
+    # GIF로 저장 (loop, 최적화)
+    print(f"Saving to {output_gif_path} ...")
+    frames[0].save(
+        output_gif_path,
+        save_all=True,
+        append_images=frames[1:],
+        duration=int(1000 / capture_fps),
+        loop=0,
+        optimize=True
+    )
+    print(f"GIF saved to {output_gif_path}")

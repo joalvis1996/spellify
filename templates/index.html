@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Spellify</title>
+  <title>Spellify - Full Page GIF</title>
 </head>
 <body>
   <h1>Spellify 🪄</h1>
   <form method="post">
-    <input type="text" name="url" placeholder="웹페이지 URL 입력">
-    <button type="submit">Spellify</button>
+    <input type="text" name="url" placeholder="웹페이지 URL 입력" required>
+    <button type="submit">Capture as GIF</button>
   </form>
 
-  {% if result_webp %}
-    <h2>Result (WebP Animation):</h2>
-    <img src="{{ url_for('result_file', filename=result_webp) }}" style="max-width: 100%;">
+  {% if result_gif %}
+    <h2>Result (GIF Animation):</h2>
+    <img src="{{ url_for('result_file', filename=result_gif) }}" style="max-width: 100%;">
   {% endif %}
 </body>
 </html>
+
