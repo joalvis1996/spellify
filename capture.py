@@ -6,7 +6,7 @@ import time
 
 def capture_fullpage_webp(url: str, output_webp_path: str, duration: int = 5, capture_fps: int = 15, playback_fps: int = 5, quality: int = 85, method: int = 6):
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
 
         print(f"Loading {url} ...")
