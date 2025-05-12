@@ -15,7 +15,7 @@ def capture_fullpage_gif(url: str, output_gif_path: str, duration: int = 3, capt
         print(f"Loading {url} ...")
         page.goto(url, timeout=60000)
 
-        # 전체 페이지 크기 계산
+        # 전체 페이지 크기
         dimensions = page.evaluate("""() => {
             return {
                 width: document.documentElement.scrollWidth,
@@ -30,9 +30,9 @@ def capture_fullpage_gif(url: str, output_gif_path: str, duration: int = 3, capt
 
         print(f"Viewport set to: {width}x{height}")
 
-        # 폰트 로딩이 끝날 때까지 대기 (중요)
+        # 폰트 로딩 완료 대기 (Fixed)
         print("Waiting for fonts to load...")
-        page.evaluate("await document.fonts.ready")
+        page.evaluate_handle("document.fonts.ready.then(() => {})")
 
         total_frames = duration * capture_fps
         frame_interval = 1 / capture_fps
