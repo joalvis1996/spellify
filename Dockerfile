@@ -1,5 +1,5 @@
-# 2. Python 3.13-alpine 기반 이미지 (경량화, 취약점 없음)
-FROM python:3.13-alpine
+# 1. Python 3.13-slim 기반 이미지 (취약점 없음)
+FROM python:3.13-slim
 
 # 2. 필수 패키지 설치 (Playwright가 필요로 함)
 RUN apt-get update && apt-get install -y \
