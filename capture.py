@@ -9,7 +9,15 @@ def capture_fullpage_gif(url: str, output_gif_path: str, duration: int = 3, capt
     frames = []
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+            ],
+        )
         page = browser.new_page()
 
         print(f"Loading {url} ...")

@@ -1,32 +1,23 @@
-# 1. Python 3.13-slim 기반 이미지 (취약점 없음)
-FROM python:3.13-slim
+# Dockerfile
+FROM python:3.11-slim
 
-# 2. 필수 패키지 설치 (Playwright가 필요로 하는 의존성 추가 포함)
+# 최소 패키지 (with-deps가 대부분 해결해줌)
 RUN apt-get update && apt-get install -y \
     wget gnupg ca-certificates \
-    fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 \
-    libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libnspr4 libnss3 \
-    libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 \
-    xdg-utils libu2f-udev libvulkan1 libxss1 \
-    libexpat1 libxkbcommon0 libxfixes3 libgbm1 libpango-1.0-0 libcairo2 \
-    --no-install-recommends \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
-# 3. 작업 디렉토리 설정
 WORKDIR /app
-
-# 4. 코드 복사
 COPY . .
 
-# 5. Python 패키지 설치
+# 앱 의존성
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Playwright 브라우저 설치
-RUN playwright install chromium
+# Playwright + 브라우저 + 시스템 deps 한번에
+RUN pip install --no-cache-dir playwright \
+ && playwright install --with-deps chromium
 
-# 7. 포트 환경 변수
-ENV PORT=5000
+# 로그 버퍼링 방지 (선택)
+ENV PYTHONUNBUFFERED=1
 
-# 8. Flask 실행 명령
-CMD ["python", "app.py"]
+# 중요: shell form으로 PORT 치환
+CMD sh -c 'gunicorn -w 2 -k gthread -b 0.0.0.0:$PORT app:app'
