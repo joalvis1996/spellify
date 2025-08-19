@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>Spellify - Full Page GIF</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  </style>
 </head>
 <body>
   <h1>Spellify 🪄</h1>
+
   <form method="post">
     <input type="text" name="url" placeholder="웹페이지 URL 입력" required>
     <button type="submit">Capture as GIF</button>
@@ -13,7 +18,18 @@
   {% if result_gif %}
     <h2>Result (GIF Animation):</h2>
     <img src="{{ url_for('result_file', filename=result_gif) }}" style="max-width: 100%;">
+
+    <script>
+      (function () {
+        // 완료 즉시 다운로드 시작
+        const dl = document.createElement('a');
+        dl.href = "{{ url_for('download_file', filename=result_gif) }}";
+        dl.download = "{{ result_gif }}";  // 일부 브라우저는 이 값 참고
+        document.body.appendChild(dl);
+        dl.click();
+        dl.remove();
+      })();
+    </script>
   {% endif %}
 </body>
 </html>
-

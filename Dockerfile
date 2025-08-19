@@ -1,23 +1,23 @@
-# Dockerfile
 FROM python:3.11-slim
 
-# 최소 패키지 (with-deps가 대부분 해결해줌)
-RUN apt-get update && apt-get install -y \
-    wget gnupg ca-certificates \
+# 필수 패키지 설치
+RUN apt-get update && \
+    apt-get install -y wget gnupg \
+    libnss3 libxss1 libasound2 libatk1.0-0 libatk-bridge2.0-0 \
+    libgbm1 libgtk-3-0 libdrm2 libxcomposite1 libxdamage1 libxrandr2 \
+    libpango-1.0-0 libharfbuzz0b libcups2 libx11-xcb1 \
+    fonts-liberation fonts-unifont fonts-ubuntu \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY . .
 
-# 앱 의존성
-RUN pip install --no-cache-dir -r requirements.txt
+# Python 패키지 설치
+RUN pip install --no-cache-dir -r requirements.txt \
+ && pip install --no-cache-dir playwright \
+ && playwright install chromium
 
-# Playwright + 브라우저 + 시스템 deps 한번에
-RUN pip install --no-cache-dir playwright \
- && playwright install --with-deps chromium
-
-# 로그 버퍼링 방지 (선택)
 ENV PYTHONUNBUFFERED=1
 
-# 중요: shell form으로 PORT 치환
+# 프로덕션용 실행
 CMD sh -c 'gunicorn -w 2 -k gthread -b 0.0.0.0:$PORT app:app'
